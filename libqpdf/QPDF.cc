@@ -93,6 +93,7 @@ QPDF::QPDF() :
     cached_key_generation(0),
     pushed_inherited_attributes_to_pages(false),
     copied_stream_data_provider(0),
+    reconstructed_xref(false),
     first_xref_item_offset(0),
     uncompressed_after_compressed(false)
 {
@@ -331,6 +332,15 @@ QPDF::setTrailer(QPDFObjectHandle obj)
 void
 QPDF::reconstruct_xref(QPDFExc& e)
 {
+    if (this->reconstructed_xref)
+    {
+        // Avoid xref reconstruction infinite loops
+        QTC::TC("qpdf", "QPDF caught recursive xref reconstruction");
+        throw e;
+    }
+
+    this->reconstructed_xref = true;
+
     PCRE obj_re("^\\s*(\\d+)\\s+(\\d+)\\s+obj\\b");
     PCRE endobj_re("^\\s*endobj\\b");
     PCRE trailer_re("^\\s*trailer\\b");
@@ -1339,6 +1349,14 @@ QPDF::readObjectAtOffset(bool try_recovery,
 	}
 	objid = atoi(tobjid.getValue().c_str());
 	generation = atoi(tgen.getValue().c_str());
+
+        if (objid == 0)
+        {
+            QTC::TC("qpdf", "QPDF object id 0");
+            throw QPDFExc(qpdf_e_damaged_pdf, this->file->getName(), // QXXXQ
+                          this->last_object_description, offset,
+                          "object with ID 0");
+        }
 
 	if ((exp_objid >= 0) &&
 	    (! ((objid == exp_objid) && (generation == exp_generation))))
