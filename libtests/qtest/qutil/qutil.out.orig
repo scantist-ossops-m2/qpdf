@@ -12,14 +12,6 @@ exception 5: Util::double_to_string has been called with a number and a decimal 
 one
 7
 compare okay
--2147483648 to int: PASSED
-2147483647 to int: PASSED
-2147483648 to int threw: PASSED
--2147483649 to int threw: PASSED
-9999999999999999999999999 to int threw: PASSED
-2147483648 to int: PASSED
--2147483649 to int: PASSED
-99999999999999999999999999999999999999999999999999 to int threw: PASSED
 ----
 before open
 exception: open file: No such file or directory
